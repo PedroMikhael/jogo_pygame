@@ -71,8 +71,46 @@ def gerar_CorredorArenaParaObjeto():
     ]
     return zone
 
-def fazer_espinhos():
-    ...
+def fazer_espinhos(screen, x0, y0, x1, y1, lado,tamanho=20, espacamento=25, cor=(200, 200, 200)):
+
+    dx = x1 - x0
+    dy = y1 - y0
+    comprimento = math.hypot(dx, dy)
+
+    if comprimento == 0:
+        return
+
+    ux = dx / comprimento
+    uy = dy / comprimento
+
+    nx = -uy * lado
+    ny = ux * lado
+
+    quantidade = int(comprimento // espacamento)
+
+    for i in range(quantidade):
+        px = x0 + ux * i * espacamento
+        py = y0 + uy * i * espacamento
+
+        base1 = (
+            px - ux * espacamento / 2,
+            py - uy * espacamento / 2
+        )
+        base2 = (
+            px + ux * espacamento / 2,
+            py + uy * espacamento / 2
+        )
+
+        ponta = (
+            px + nx * tamanho,
+            py + ny * tamanho
+        )
+
+        primitives.drawPolygon(screen,[base1, base2, ponta],cor)
+        
+
+def fazer_magma():
+    pass
 
 
 
@@ -87,8 +125,13 @@ def drawMap(screen):
     primitives.scanline_fill(screen, gerar_ArenaInimigos(), (50,50,50))
     primitives.drawPolygon(screen, gerar_CorredorArenaParaObjeto(), (0,0,0))
     primitives.scanline_fill(screen, gerar_CorredorArenaParaObjeto(), (0,0,0))
-    
+    fazer_espinhos(screen, 700,550 , 500,750, -1, tamanho=15, espacamento=30, cor=(255,255,255))
+    fazer_espinhos(screen, 500, 850, 800, 650 , -1, tamanho=15, espacamento=30, cor=(255,255,255))
 
+
+def retorno_zona():
+    ...        
+'''
 def spawn_zone():
     return (250, 100)   #coordenadas x e y do centro da zona de spawn
 
@@ -114,3 +157,4 @@ def getSafeZone():
 
 def getNestZone(): 
     return NEST_ZONE
+'''
