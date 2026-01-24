@@ -4,12 +4,38 @@ import math
 import random
 import primitives
 from primitives import drawCircle
-from characters.submarine import drawSubmarine, drawSubmarineFilled, get_bubble_spawn_position, init_sonar, activate_sonar, update_sonar, draw_sonar
-from characters.jellyfish import create_jellyfish, update_jellyfish, draw_jellyfish_bioluminescent, check_jellyfish_collision
-from characters.tentacles import create_giant_tentacles, update_giant_tentacles, draw_giant_tentacles
-from characters.water_bomb import create_water_bomb, update_water_bomb, draw_water_bomb
-import menu
 
+from characters.submarine import (
+    drawSubmarineFilled,
+    get_bubble_spawn_position,
+    init_sonar,
+    activate_sonar,
+    update_sonar,
+    draw_sonar
+)
+
+from characters.jellyfish import (
+    create_jellyfish,
+    update_jellyfish,
+    draw_jellyfish_bioluminescent
+)
+
+from characters.tentacles import (
+    create_giant_tentacles,
+    update_giant_tentacles,
+    draw_giant_tentacles
+)
+
+from characters.water_bomb import (
+    create_water_bomb,
+    update_water_bomb,
+    draw_water_bomb
+)
+
+import menu
+import map   # <<< MAPA IMPORTADO
+
+# ---------------- CORES ----------------
 OCEAN_DEEP = (15, 40, 70)
 SUBMARINE_BODY = (80, 90, 100)
 SUBMARINE_DETAIL = (50, 55, 65)
@@ -21,8 +47,9 @@ BOMB_BODY = (60, 65, 70)
 BOMB_SPIKE = (40, 45, 50)
 BOMB_HIGHLIGHT = (200, 220, 255)
 
+# ---------------- TELA ----------------
 WIDTH = 1920
-HEIGHT = 1080   
+HEIGHT = 1080
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -32,6 +59,7 @@ clock = pygame.time.Clock()
 title_font = pygame.font.Font(None, 64)
 button_font = pygame.font.Font(None, 36)
 
+# ---------------- MENU ----------------
 menu.init_menu(WIDTH, HEIGHT)
 menu.init_instructions(WIDTH, HEIGHT)
 menu.init_credits(WIDTH, HEIGHT)
@@ -44,6 +72,7 @@ GAME_STATE_CREDITS = "credits"
 game_state = GAME_STATE_MENU
 menu_time = 0
 
+# ---------------- SUBMARINO ----------------
 sub_x = WIDTH // 2
 sub_y = HEIGHT // 2
 sub_angle = 0
@@ -52,12 +81,17 @@ rotation_speed = 4
 propeller_angle = 0
 propeller_speed = 15
 
+# ---------------- PARTÍCULAS ----------------
 bubbles = []
 bubble_timer = 0
 
+# ---------------- INIMIGOS ----------------
 jellyfishes = []
 water_bombs = []
+giant_tentacles = None
+sonar = None
 
+# ---------------- BOLHAS ----------------
 def create_bubble(x, y):
     return {
         'x': x + random.randint(-10, 10),
@@ -86,35 +120,40 @@ def draw_bubble(surface, b):
     )
     drawCircle(surface, int(b['x']), int(b['y']), b['radius'], color)
 
+# ================= LOOP PRINCIPAL =================
 while True:
     mouse_x, mouse_y = pygame.mouse.get_pos()
-    
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        
+
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if game_state == GAME_STATE_MENU:
                 action = menu.handle_menu_click(mouse_x, mouse_y)
+
                 if action == "NOVO JOGO":
                     game_state = GAME_STATE_PLAYING
-                    sub_x = WIDTH // 2
-                    sub_y = HEIGHT // 2
+                    sub_x, sub_y = WIDTH // 2, HEIGHT // 2
                     sub_angle = 0
-                    bubbles = []
+                    bubbles.clear()
+
                     jellyfishes = [
                         create_jellyfish(200, 200),
                         create_jellyfish(800, 300),
                         create_jellyfish(600, 500),
                     ]
+
                     water_bombs = [
                         create_water_bomb(400, -100),
                         create_water_bomb(WIDTH - 400, -300),
                         create_water_bomb(WIDTH // 2, -500),
                     ]
+
                     giant_tentacles = create_giant_tentacles(WIDTH // 2, HEIGHT)
                     sonar = init_sonar()
+
                 elif action == "INSTRUCOES":
                     game_state = GAME_STATE_INSTRUCTIONS
                 elif action == "CREDITOS":
@@ -122,103 +161,109 @@ while True:
                 elif action == "SAIR":
                     pygame.quit()
                     sys.exit()
-            
+
             elif game_state == GAME_STATE_INSTRUCTIONS:
-                action = menu.handle_instructions_click(mouse_x, mouse_y)
-                if action == "VOLTAR":
+                if menu.handle_instructions_click(mouse_x, mouse_y) == "VOLTAR":
                     game_state = GAME_STATE_MENU
-            
+
             elif game_state == GAME_STATE_CREDITS:
-                action = menu.handle_credits_click(mouse_x, mouse_y)
-                if action == "VOLTAR":
+                if menu.handle_credits_click(mouse_x, mouse_y) == "VOLTAR":
                     game_state = GAME_STATE_MENU
-        
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                if game_state == GAME_STATE_PLAYING:
-                    game_state = GAME_STATE_MENU
-                elif game_state in [GAME_STATE_INSTRUCTIONS, GAME_STATE_CREDITS]:
-                    game_state = GAME_STATE_MENU
+                game_state = GAME_STATE_MENU
             if event.key == pygame.K_SPACE and game_state == GAME_STATE_PLAYING:
                 activate_sonar(sonar)
 
+    # ================= ESTADOS =================
     if game_state == GAME_STATE_MENU:
         menu_time += 1
         menu.update_menu(menu_time, mouse_x, mouse_y)
         screen.fill(menu.ABYSS_BLACK)
         menu.draw_menu(screen, WIDTH, HEIGHT, title_font, button_font)
-    
+
     elif game_state == GAME_STATE_INSTRUCTIONS:
         menu.update_instructions(mouse_x, mouse_y)
         screen.fill(menu.ABYSS_BLACK)
         menu.draw_instructions(screen, WIDTH, HEIGHT, title_font, button_font)
-    
+
     elif game_state == GAME_STATE_CREDITS:
         menu.update_credits(mouse_x, mouse_y)
         screen.fill(menu.ABYSS_BLACK)
         menu.draw_credits(screen, WIDTH, HEIGHT, title_font, button_font)
-    
+
     elif game_state == GAME_STATE_PLAYING:
         keys = pygame.key.get_pressed()
         is_moving = False
-        
+
         if keys[pygame.K_LEFT]:
             sub_angle -= rotation_speed
         if keys[pygame.K_RIGHT]:
             sub_angle += rotation_speed
-        
         if keys[pygame.K_UP]:
             rad = math.radians(sub_angle)
             sub_x += math.cos(rad) * sub_speed
             sub_y += math.sin(rad) * sub_speed
             is_moving = True
-        
         if keys[pygame.K_DOWN]:
             rad = math.radians(sub_angle)
             sub_x -= math.cos(rad) * sub_speed
             sub_y -= math.sin(rad) * sub_speed
             is_moving = True
-        
+
         sub_x = max(80, min(WIDTH - 80, sub_x))
         sub_y = max(80, min(HEIGHT - 80, sub_y))
-        
+
         if is_moving:
             propeller_angle += propeller_speed
             bubble_timer += 1
             if bubble_timer >= 5:
                 bubble_timer = 0
-                spawn_x, spawn_y = get_bubble_spawn_position(sub_x, sub_y, sub_angle)
-                bubbles.append(create_bubble(spawn_x, spawn_y))
+                bx, by = get_bubble_spawn_position(sub_x, sub_y, sub_angle)
+                bubbles.append(create_bubble(bx, by))
         else:
             propeller_angle += propeller_speed * 0.2
-        
-        bubbles = [b for b in bubbles if update_bubble(b)]
-        
+
+        bubbles[:] = [b for b in bubbles if update_bubble(b)]
+
         for jf in jellyfishes:
             update_jellyfish(jf, WIDTH, HEIGHT)
-        
+
         for bomb in water_bombs:
             update_water_bomb(bomb, HEIGHT)
-        
+
         update_giant_tentacles(giant_tentacles)
         update_sonar(sonar, sub_x, sub_y)
+
         
-        screen.fill(OCEAN_DEEP)
-        
+        screen.fill((0,0,0))
+
+        map.drawMap(screen)  #
+
         draw_giant_tentacles(screen, giant_tentacles, TENTACLE_COLOR)
-        
+
         for b in bubbles:
             draw_bubble(screen, b)
-        
+
         for jf in jellyfishes:
             draw_jellyfish_bioluminescent(screen, jf)
-        
+
         for bomb in water_bombs:
             draw_water_bomb(screen, bomb, BOMB_BODY, BOMB_SPIKE, BOMB_HIGHLIGHT)
-        
+
         draw_sonar(screen, sonar, SONAR_COLOR)
-        
-        drawSubmarineFilled(screen, int(sub_x), int(sub_y), sub_angle, SUBMARINE_BODY, SUBMARINE_DETAIL, SUBMARINE_FILL, propeller_angle)
-    
+
+        drawSubmarineFilled(
+            screen,
+            int(sub_x),
+            int(sub_y),
+            sub_angle,
+            SUBMARINE_BODY,
+            SUBMARINE_DETAIL,
+            SUBMARINE_FILL,
+            propeller_angle
+        )
+
     pygame.display.flip()
     clock.tick(60)
