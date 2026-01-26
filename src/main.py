@@ -47,7 +47,8 @@ from characters.research_capsule import (
 
 import menu
 import map
-from map import get_spawn_position, is_point_in_map
+from map import get_spawn_position, is_point_in_map, get_all_map_zones
+import minimap
 
 OCEAN_DEEP = (15, 40, 70)
 SUBMARINE_BODY = (80, 90, 100)
@@ -464,6 +465,26 @@ while True:
             obj_text = "Objetivo: Retorne à base"
         obj_render = hud_font.render(obj_text, True, (230, 230, 230))
         screen.blit(obj_render, (20, 20 + battery_height + 70))
+
+        ## minimapa
+        minimap_x = WIDTH - 250
+        minimap_y = 20
+        minimap_w = 230
+        minimap_h = 160
+        
+        objects_to_draw = {
+            'base': BASE_POS,
+            'capsule': research_capsule
+        }
+        
+        minimap.draw_minimap(
+            screen, 
+            minimap_x, minimap_y, minimap_w, minimap_h,
+            get_all_map_zones(),
+            (sub_x, sub_y),
+            MAP_WIDTH, MAP_HEIGHT,
+            objects_to_draw
+        )
 
         if research_capsule and research_capsule['collected']:
             status_font = pygame.font.Font(None, 24)
