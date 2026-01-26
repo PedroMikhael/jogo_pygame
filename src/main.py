@@ -64,9 +64,21 @@ WIDTH = 1280
 HEIGHT = 720
 
 pygame.init()
+pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Echoes of the Deep")
 clock = pygame.time.Clock()
+
+pygame.mixer.music.load("sounds/underwater_sound.mp3")
+pygame.mixer.music.set_volume(0.75)
+pygame.mixer.music.play(-1)
+
+sonar_sound = pygame.mixer.Sound("sounds/submarine_sonar.mp3")
+sonar_sound.set_volume(0.7)
+
+# Adicionar depois que tiver a animação de dano em personagens
+impact_sound = pygame.mixer.Sound("sounds/impact_submarine.mp3")
+impact_sound.set_volume(0.3)
 
 SHOW_FPS = True
 
@@ -82,6 +94,7 @@ GAME_STATE_PLAYING = "playing"
 GAME_STATE_INSTRUCTIONS = "instructions"
 GAME_STATE_CREDITS = "credits"
 GAME_STATE_VICTORY = "victory"
+GAME_STATE_GAMEOVER = "gameover"
 
 game_state = GAME_STATE_MENU
 menu_time = 0
@@ -123,6 +136,11 @@ SHOW_MISSION_DURATION_MS = 4500
 
 victory_start_time = 0
 VICTORY_DURATION_MS = 2500
+
+gameover_start_time = 0
+GAMEOVER_DURATION_MS = 3000
+gameover_big_font = pygame.font.Font(None, 96)
+gameover_mid_font = pygame.font.Font(None, 40)
 
 hud_font = pygame.font.Font(None, 28)
 mission_big_font = pygame.font.Font(None, 64)
@@ -247,6 +265,9 @@ while True:
             elif game_state == GAME_STATE_VICTORY:
                 game_state = GAME_STATE_MENU
 
+            elif game_state == GAME_STATE_GAMEOVER:
+                game_state = GAME_STATE_MENU
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 game_state = GAME_STATE_MENU
@@ -254,6 +275,7 @@ while True:
                 if battery['charge'] >= 3:
                     activate_sonar(sonar)
                     use_sonar_battery(battery)
+                    sonar_sound.play()
 
     if game_state == GAME_STATE_MENU:
         menu_time += 1
@@ -285,6 +307,24 @@ while True:
         screen.blit(subtitle, subtitle.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 30)))
 
         if elapsed >= VICTORY_DURATION_MS:
+            game_state = GAME_STATE_MENU
+
+    elif game_state == GAME_STATE_GAMEOVER:
+        screen.fill((0, 0, 0))
+
+        elapsed = pygame.time.get_ticks() - gameover_start_time
+
+        bg = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+        bg.fill((30, 0, 0, 200))
+        screen.blit(bg, (0, 0))
+
+        title = gameover_big_font.render("GAME OVER", True, (255, 80, 80))
+        subtitle = gameover_mid_font.render("A bateria do submarino acabou...", True, (200, 200, 200))
+
+        screen.blit(title, title.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 40)))
+        screen.blit(subtitle, subtitle.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 30)))
+
+        if elapsed >= GAMEOVER_DURATION_MS:
             game_state = GAME_STATE_MENU
 
     elif game_state == GAME_STATE_PLAYING:
@@ -327,6 +367,13 @@ while True:
 
         camera_x = sub_x - WIDTH // 2
         camera_y = sub_y - HEIGHT // 2
+
+        if research_capsule and research_capsule['collected']:
+            shake_intensity = 4
+            shake_x = random.randint(-shake_intensity, shake_intensity)
+            shake_y = random.randint(-shake_intensity, shake_intensity)
+            camera_x += shake_x
+            camera_y += shake_y
 
         screen.fill((0, 0, 0))
         screen.blit(map_surface, (-camera_x, -camera_y))
@@ -402,6 +449,10 @@ while True:
         
         update_battery(battery)
         battery_height = draw_battery(screen, battery, 20, 20)
+
+        if battery['charge'] <= 0:
+            game_state = GAME_STATE_GAMEOVER
+            gameover_start_time = pygame.time.get_ticks()
 
         depth = sub_y
         draw_depth(screen, depth, 20, 20 + battery_height + 10)
