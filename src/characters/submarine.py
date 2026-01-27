@@ -288,16 +288,16 @@ def submarine_battery():
 
 
 def update_battery(battery):
-    """Atualiza a bateria - descarga 1% a cada 2 segundos (120 frames a 60fps)"""
+    """Atualiza a bateria - descarga 1% a cada 1.5 segundos (90 frames a 60fps)"""
     battery['timer'] += 1
-    if battery['timer'] >= 120: 
+    if battery['timer'] >= 90: 
         battery['timer'] = 0
         battery['charge'] = max(0, battery['charge'] - 1)
     return battery['charge'] > 0 
 
 def use_sonar_battery(battery):
-    """Desconta 3% da bateria ao usar o sonar"""
-    battery['charge'] = max(0, battery['charge'] - 3)
+    """Desconta 5% da bateria ao usar o sonar"""
+    battery['charge'] = max(0, battery['charge'] - 5)
     return battery['charge'] > 0 
 
 def draw_battery(surface, battery, x, y):

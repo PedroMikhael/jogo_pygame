@@ -61,8 +61,17 @@ def draw_minimap(surface, x, y, width, height, map_zones, player_pos, map_width,
             mby = y + int(by * scale_y)
             drawCircle(surface, mbx, mby, 4, (0, 255, 0)) # Base Verde
 
-        # Cápsula
-        if 'capsule' in objects_dict:
+        # Cápsulas (suporte para múltiplas)
+        if 'capsules' in objects_dict:
+            for cap in objects_dict['capsules']:
+                if cap and not cap.get('collected', False):
+                    cx, cy = cap['x'], cap['y']
+                    mcx = x + int(cx * scale_x)
+                    mcy = y + int(cy * scale_y)
+                    drawCircle(surface, mcx, mcy, 3, (255, 0, 0)) # Cápsula Vermelha
+        
+        # Compatibilidade com cápsula única (legado)
+        elif 'capsule' in objects_dict:
             cap = objects_dict['capsule']
             if cap and not cap.get('collected', False):
                 cx, cy = cap['x'], cap['y']

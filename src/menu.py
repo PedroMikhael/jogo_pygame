@@ -140,9 +140,69 @@ def update_menu(time, mouse_x, mouse_y):
         btn['hovered'] = is_mouse_over_button(btn, mouse_x, mouse_y)
 
 
+def draw_background_gradient(surface, width, height):
+    
+    color_top = (10, 30, 60)    
+    color_bottom = (2, 5, 10)   
+    
+    for y in range(height):
+        t = y / height
+        r = int(color_top[0] + (color_bottom[0] - color_top[0]) * t)
+        g = int(color_top[1] + (color_bottom[1] - color_top[1]) * t)
+        b = int(color_top[2] + (color_bottom[2] - color_top[2]) * t)
+        
+       
+        DrawLineBresenham(surface, 0, y, width - 1, y, (r, g, b))
+
+
+def draw_decorative_bubbles(surface, width, height):
+    bubble_border = (40, 90, 110)
+    bubble_fill = (25, 60, 80)
+    
+
+    bx1, by1 = int(width * 0.08), int(height * 0.65)
+    drawCircle(surface, bx1, by1, int(width * 0.04), bubble_border)
+    flood_fill_iterativo(surface, bx1, by1, bubble_fill, bubble_border)
+    
+    bx2, by2 = int(width * 0.12), int(height * 0.78)
+    drawCircle(surface, bx2, by2, int(width * 0.025), bubble_border)
+    flood_fill_iterativo(surface, bx2, by2, bubble_fill, bubble_border)
+    
+    bx3, by3 = int(width * 0.05), int(height * 0.82)
+    drawCircle(surface, bx3, by3, int(width * 0.018), bubble_border)
+    flood_fill_iterativo(surface, bx3, by3, bubble_fill, bubble_border)
+    
+    
+    bx4, by4 = int(width * 0.92), int(height * 0.6)
+    drawCircle(surface, bx4, by4, int(width * 0.035), bubble_border)
+    flood_fill_iterativo(surface, bx4, by4, bubble_fill, bubble_border)
+    
+    bx5, by5 = int(width * 0.88), int(height * 0.75)
+    drawCircle(surface, bx5, by5, int(width * 0.028), bubble_border)
+    flood_fill_iterativo(surface, bx5, by5, bubble_fill, bubble_border)
+    
+    bx6, by6 = int(width * 0.95), int(height * 0.85)
+    drawCircle(surface, bx6, by6, int(width * 0.015), bubble_border)
+    flood_fill_iterativo(surface, bx6, by6, bubble_fill, bubble_border)
+    
+    
+    small_bubble_border = (50, 100, 120)
+    small_bubble_fill = (30, 70, 90)
+    
+    bx7, by7 = int(width * 0.15), int(height * 0.55)
+    drawCircle(surface, bx7, by7, int(width * 0.012), small_bubble_border)
+    flood_fill_iterativo(surface, bx7, by7, small_bubble_fill, small_bubble_border)
+    
+    bx8, by8 = int(width * 0.85), int(height * 0.48)
+    drawCircle(surface, bx8, by8, int(width * 0.01), small_bubble_border)
+    flood_fill_iterativo(surface, bx8, by8, small_bubble_fill, small_bubble_border)
+
+
 def draw_menu_decorations(surface, width, height):
-    decor_color = (25, 35, 45)
-    fill_color = (18, 28, 38)
+    """Desenha decorações usando elipses e retas - requisitos do trabalho"""
+    decor_color = (25, 40, 55)
+    fill_color = (18, 30, 45)
+    
     
     x1, y1 = int(width * 0.15), int(height * 0.45)
     drawEllipse(surface, x1, y1, int(width * 0.06), int(height * 0.04), decor_color)
@@ -160,27 +220,20 @@ def draw_menu_decorations(surface, width, height):
     drawEllipse(surface, x4, y4, int(width * 0.045), int(height * 0.03), decor_color)
     flood_fill_iterativo(surface, x4, y4, fill_color, decor_color)
     
-    cx1, cy1 = int(width * 0.08), int(height * 0.35)
-    drawCircle(surface, cx1, cy1, int(width * 0.015), decor_color)
-    flood_fill_iterativo(surface, cx1, cy1, fill_color, decor_color)
     
-    cx2, cy2 = int(width * 0.92), int(height * 0.4)
-    drawCircle(surface, cx2, cy2, int(width * 0.012), decor_color)
-    flood_fill_iterativo(surface, cx2, cy2, fill_color, decor_color)
-    
-    cx3, cy3 = int(width * 0.12), int(height * 0.8)
-    drawCircle(surface, cx3, cy3, int(width * 0.01), decor_color)
-    flood_fill_iterativo(surface, cx3, cy3, fill_color, decor_color)
+    line_color = (20, 45, 60)
     
     lx_start = int(width * 0.05)
     ly_start = int(height * 0.5)
-    DrawLineBresenham(surface, lx_start, ly_start, lx_start + 50, ly_start + 50, decor_color)
-    DrawLineBresenham(surface, lx_start + 50, ly_start + 50, lx_start + 30, ly_start + 100, decor_color)
+    DrawLineBresenham(surface, lx_start, ly_start, lx_start + 50, ly_start + 50, line_color)
+    DrawLineBresenham(surface, lx_start + 50, ly_start + 50, lx_start + 30, ly_start + 100, line_color)
+    DrawLineBresenham(surface, lx_start + 30, ly_start + 100, lx_start + 60, ly_start + 130, line_color)
     
     lx_end = int(width * 0.95)
     ly_end = int(height * 0.52)
-    DrawLineBresenham(surface, lx_end, ly_end, lx_end - 50, ly_end + 50, decor_color)
-    DrawLineBresenham(surface, lx_end - 50, ly_end + 50, lx_end - 20, ly_end + 100, decor_color)
+    DrawLineBresenham(surface, lx_end, ly_end, lx_end - 50, ly_end + 50, line_color)
+    DrawLineBresenham(surface, lx_end - 50, ly_end + 50, lx_end - 20, ly_end + 100, line_color)
+    DrawLineBresenham(surface, lx_end - 20, ly_end + 100, lx_end - 55, ly_end + 130, line_color)
 
 
 def draw_title_gradient(surface, text, x, y, font, color_top, color_bottom):
@@ -208,8 +261,9 @@ def draw_title_gradient(surface, text, x, y, font, color_top, color_bottom):
 
 
 def draw_menu(surface, width, height, title_font, button_font):
+    draw_background_gradient(surface, width, height)
     draw_menu_decorations(surface, width, height)
-    
+    draw_decorative_bubbles(surface, width, height)
     for p in particles:
         draw_particle(surface, p)
     

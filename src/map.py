@@ -126,9 +126,26 @@ def fazer_magma(poligono, screen, textura):
     primitives.scanline_texture(screen, poligono, uvs, textura)
 
 def caminhoerrado_inicial():
-    caminho = [(100, 700),(100,200),(0,200),(0,0),(300,0),(300,200),(300, 700),]
-
+    # Caminho vertical principal 
+    caminho = [(100, 700), (100, 200), (0, 200), (0, 0), (300, 0), (300, 200), (300, 700)]
     return caminho
+
+def gerar_bifurcacao_direita():
+    # Arco que sai para direita, sobe, volta para esquerda e desce
+    # Formato de arco/U invertido
+    bifurcacao = [
+        # Saída do caminho principal (parte de baixo)
+        (300, 450),    # Conexão inferior com caminho
+        (500, 450),    # Vai para direita (corredor inferior)
+        (550, 450),    # Canto inferior direito
+        (550, 200),    # Sobe (lateral direita)
+        (500, 150),    # Canto superior direito
+        (400, 150),    # Topo do arco (onde fica a cápsula)
+        (350, 200),    # Canto superior esquerdo
+        (350, 350),    # Desce (lateral esquerda)
+        (300, 350),    # Conexão superior com caminho
+    ]
+    return bifurcacao
 
  
 def drawMap(screen):
@@ -171,6 +188,11 @@ def drawMap(screen):
     #MAGMA textura
     fazer_magma([(1100,200 ),(1200,150 ),(1300,100 ),(1400,200 )],screen,textura_lava)
     fazer_magma([(1400, 300),(1200,400),(1150,350),(1100,300 )],screen,textura_lava)
+    
+    #bifurcação direita (arco com cápsula)
+    bifurc_dir = gerar_bifurcacao_direita()
+    primitives.drawPolygon(screen, bifurc_dir, OCEAN_DEEP)
+    primitives.scanline_fill(screen, bifurc_dir, OCEAN_DEEP)
 
 
 
@@ -191,6 +213,7 @@ def get_all_map_zones():
         gerar_CorredorArenaParaObjeto(),
         caminhoerrado_inicial(),
         gerar_caminho_errado(),
+        gerar_bifurcacao_direita(),
     ]
 
 

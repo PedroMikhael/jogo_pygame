@@ -4,6 +4,7 @@ import math
 import random
 import primitives
 from primitives import drawCircle
+import time
 
 from characters.submarine import (
     drawSubmarineFilled,
@@ -96,6 +97,7 @@ GAME_STATE_INSTRUCTIONS = "instructions"
 GAME_STATE_CREDITS = "credits"
 GAME_STATE_VICTORY = "victory"
 GAME_STATE_GAMEOVER = "gameover"
+GAME_STATE_PAUSED = "paused"
 
 game_state = GAME_STATE_MENU
 menu_time = 0
@@ -121,8 +123,7 @@ water_bombs = []
 giant_tentacles = None
 sonar = None
 battery = None
-research_capsule = None
-
+research_capsules = [] 
 MAP_WIDTH = 2000
 MAP_HEIGHT = 1200
 map_surface = pygame.Surface((MAP_WIDTH, MAP_HEIGHT))
@@ -148,6 +149,60 @@ mission_big_font = pygame.font.Font(None, 64)
 mission_small_font = pygame.font.Font(None, 28)
 victory_big_font = pygame.font.Font(None, 96)
 victory_mid_font = pygame.font.Font(None, 40)
+pause_big_font = pygame.font.Font(None, 72)
+pause_button_font = pygame.font.Font(None, 36)
+
+
+pause_buttons = []
+
+def init_pause_menu():
+    global pause_buttons
+    button_width = 280
+    button_height = 55
+    button_x = (WIDTH - button_width) // 2
+    start_y = HEIGHT // 2
+    spacing = 70
+    
+    pause_buttons = [
+        {'x': button_x, 'y': start_y, 'w': button_width, 'h': button_height, 'text': "CONTINUAR", 'hovered': False},
+        {'x': button_x, 'y': start_y + spacing, 'w': button_width, 'h': button_height, 'text': "MENU PRINCIPAL", 'hovered': False},
+    ]
+
+def update_pause_menu(mouse_x, mouse_y):
+    for btn in pause_buttons:
+        btn['hovered'] = btn['x'] <= mouse_x <= btn['x'] + btn['w'] and btn['y'] <= mouse_y <= btn['y'] + btn['h']
+
+def draw_pause_menu(surface):
+    
+    overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    overlay.fill((0, 0, 0, 180))
+    surface.blit(overlay, (0, 0))
+    
+    
+    title = pause_big_font.render("PAUSADO", True, (180, 200, 220))
+    title_rect = title.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 100))
+    surface.blit(title, title_rect)
+    
+    
+    for btn in pause_buttons:
+        
+        btn_color = (30, 45, 60) if not btn['hovered'] else (50, 70, 90)
+        border_color = (60, 90, 110) if not btn['hovered'] else (80, 140, 150)
+        
+        pygame.draw.rect(surface, btn_color, (btn['x'], btn['y'], btn['w'], btn['h']))
+        pygame.draw.rect(surface, border_color, (btn['x'], btn['y'], btn['w'], btn['h']), 2)
+        
+        text = pause_button_font.render(btn['text'], True, (200, 210, 220))
+        text_rect = text.get_rect(center=(btn['x'] + btn['w'] // 2, btn['y'] + btn['h'] // 2))
+        surface.blit(text, text_rect)
+
+def handle_pause_click(mouse_x, mouse_y):
+    for btn in pause_buttons:
+        if btn['x'] <= mouse_x <= btn['x'] + btn['w'] and btn['y'] <= mouse_y <= btn['y'] + btn['h']:
+            return btn['text']
+    return None
+
+init_pause_menu()
 
 def is_in_base(px, py):
     dx = px - BASE_POS[0]
@@ -251,7 +306,12 @@ while True:
                     giant_tentacles = create_giant_tentacles(1100, 900, 0.5)
                     sonar = init_sonar()
                     battery = submarine_battery()
-                    research_capsule = create_research_capsule(1750, 850, 0.4)
+                    
+                    # Duas cápsulas de pesquisa
+                    research_capsules = [
+                        create_research_capsule(1750, 850, 0.4),   # Cápsula no corredor final
+                        create_research_capsule(450, 200, 0.4),    # Cápsula no topo do arco
+                    ]
 
                 elif action == "INSTRUCOES":
                     game_state = GAME_STATE_INSTRUCTIONS
@@ -269,10 +329,22 @@ while True:
 
             elif game_state == GAME_STATE_GAMEOVER:
                 game_state = GAME_STATE_MENU
+            
+            elif game_state == GAME_STATE_PAUSED:
+                action = handle_pause_click(mouse_x, mouse_y)
+                if action == "CONTINUAR":
+                    game_state = GAME_STATE_PLAYING
+                elif action == "MENU PRINCIPAL":
+                    game_state = GAME_STATE_MENU
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                game_state = GAME_STATE_MENU
+                if game_state == GAME_STATE_PLAYING:
+                    game_state = GAME_STATE_PAUSED
+                elif game_state == GAME_STATE_PAUSED:
+                    game_state = GAME_STATE_PLAYING
+                else:
+                    game_state = GAME_STATE_MENU
             if event.key == pygame.K_SPACE and game_state == GAME_STATE_PLAYING:
                 if battery['charge'] >= 3:
                     activate_sonar(sonar)
@@ -303,7 +375,7 @@ while True:
         screen.blit(bg, (0, 0))
 
         title = victory_big_font.render("VOCÊ VENCEU!", True, (255, 230, 120))
-        subtitle = victory_mid_font.render("Cápsula recuperada e entregue na base.", True, (230, 230, 230))
+        subtitle = victory_mid_font.render("Cápsulas recuperadas e entregue na base.", True, (230, 230, 230))
 
         screen.blit(title, title.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 40)))
         screen.blit(subtitle, subtitle.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 30)))
@@ -328,6 +400,27 @@ while True:
 
         if elapsed >= GAMEOVER_DURATION_MS:
             game_state = GAME_STATE_MENU
+
+    elif game_state == GAME_STATE_PAUSED:
+        
+        screen.fill((0, 0, 0))
+        screen.blit(map_surface, (-camera_x, -camera_y))
+        
+        
+        drawSubmarineFilled(
+            screen,
+            WIDTH // 2,
+            HEIGHT // 2,
+            sub_angle,
+            SUBMARINE_BODY,
+            SUBMARINE_DETAIL,
+            SUBMARINE_FILL,
+            propeller_angle,
+            SUB_SCALE
+        )
+        
+        update_pause_menu(mouse_x, mouse_y)
+        draw_pause_menu(screen)
 
     elif game_state == GAME_STATE_PLAYING:
         keys = pygame.key.get_pressed()
@@ -370,7 +463,11 @@ while True:
         camera_x = sub_x - WIDTH // 2
         camera_y = sub_y - HEIGHT // 2
 
-        if research_capsule and research_capsule['collected']:
+        
+        cycle_time = pygame.time.get_ticks() % 20000  
+        is_shaking = cycle_time >= 15000  
+        
+        if is_shaking:
             shake_intensity = 4
             shake_x = random.randint(-shake_intensity, shake_intensity)
             shake_y = random.randint(-shake_intensity, shake_intensity)
@@ -413,19 +510,20 @@ while True:
         }
         draw_giant_tentacles(screen, tentacles_copy, TENTACLE_COLOR)
 
-        # Cápsula de pesquisa
-        if research_capsule and not research_capsule['collected']:
-            update_research_capsule(research_capsule)
-            capsule_screen_x = research_capsule['x'] - camera_x
-            capsule_screen_y = research_capsule['y'] - camera_y
-            if is_visible(capsule_screen_x, capsule_screen_y, 150):
-                capsule_copy = research_capsule.copy()
-                capsule_copy['x'] = capsule_screen_x
-                capsule_copy['y'] = capsule_screen_y
-                draw_research_capsule(screen, capsule_copy)
+        # Cápsulas de pesquisa
+        for capsule in research_capsules:
+            if not capsule['collected']:
+                update_research_capsule(capsule)
+                capsule_screen_x = capsule['x'] - camera_x
+                capsule_screen_y = capsule['y'] - camera_y
+                if is_visible(capsule_screen_x, capsule_screen_y, 150):
+                    capsule_copy = capsule.copy()
+                    capsule_copy['x'] = capsule_screen_x
+                    capsule_copy['y'] = capsule_screen_y
+                    draw_research_capsule(screen, capsule_copy)
 
-            if check_capsule_collision(sub_x, sub_y, research_capsule):
-                collect_capsule(research_capsule)
+                if check_capsule_collision(sub_x, sub_y, capsule):
+                    collect_capsule(capsule)
 
         update_sonar(sonar, WIDTH // 2, HEIGHT // 2)
         draw_sonar(screen, sonar, SONAR_COLOR)
@@ -459,11 +557,14 @@ while True:
         depth = sub_y
         draw_depth(screen, depth, 20, 20 + battery_height + 10)
 
+        # Contagem de cápsulas
+        collected_count = sum(1 for cap in research_capsules if cap['collected'])
+        total_capsules = len(research_capsules)
         
-        if research_capsule and not research_capsule['collected']:
-            obj_text = "Objetivo: Coletar a cápsula de pesquisa"
+        if collected_count < total_capsules:
+            obj_text = f"Objetivo: Coletar cápsulas ({collected_count}/{total_capsules})"
         else:
-            obj_text = "Objetivo: Retorne à base"
+            obj_text = "TODAS AS CÁPSULAS COLETADAS!"
         obj_render = hud_font.render(obj_text, True, (230, 230, 230))
         screen.blit(obj_render, (20, 20 + battery_height + 70))
 
@@ -473,9 +574,11 @@ while True:
         minimap_w = 230
         minimap_h = 160
         
+        # Passar apenas cápsulas não coletadas para o minimapa
+        uncollected_capsules = [cap for cap in research_capsules if not cap['collected']]
         objects_to_draw = {
             'base': BASE_POS,
-            'capsule': research_capsule
+            'capsules': uncollected_capsules
         }
         
         minimap.draw_minimap(
@@ -487,9 +590,10 @@ while True:
             objects_to_draw
         )
 
-        if research_capsule and research_capsule['collected']:
+        # Mostrar progresso quando há cápsulas coletadas
+        if collected_count > 0 and collected_count < total_capsules:
             status_font = pygame.font.Font(None, 24)
-            status_text = status_font.render("CÁPSULA COLETADA", True, (0, 255, 100))
+            status_text = status_font.render(f"CÁPSULA {collected_count}/{total_capsules} COLETADA", True, (0, 255, 100))
             screen.blit(status_text, (20, 20 + battery_height + 40))
 
             pulse = abs(math.sin(pygame.time.get_ticks() * 0.005))
@@ -497,19 +601,21 @@ while True:
             primitives.drawCircle(screen, 10, 20 + battery_height + 48, 4, icon_color)
 
             center_font = pygame.font.Font(None, 48)
-            return_text = center_font.render("RETORNE À BASE!", True, (255, 200, 50))
-            text_rect = return_text.get_rect(center=(WIDTH // 2, 60))
+            remaining = total_capsules - collected_count
+            find_text = center_font.render(f"ENCONTRE MAIS {remaining} CÁPSULA(S)!", True, (255, 200, 50))
+            text_rect = find_text.get_rect(center=(WIDTH // 2, 60))
 
             bg_rect = text_rect.inflate(20, 10)
             bg_surface = pygame.Surface((bg_rect.width, bg_rect.height))
             bg_surface.fill((20, 30, 50))
             bg_surface.set_alpha(int(180 + 50 * pulse))
             screen.blit(bg_surface, bg_rect.topleft)
-            screen.blit(return_text, text_rect)
+            screen.blit(find_text, text_rect)
 
-            if is_in_base(sub_x, sub_y):
-                game_state = GAME_STATE_VICTORY
-                victory_start_time = pygame.time.get_ticks()
+        # Vitória quando todas as cápsulas são coletadas
+        if collected_count == total_capsules:
+            game_state = GAME_STATE_VICTORY
+            victory_start_time = pygame.time.get_ticks()
 
         elapsed = pygame.time.get_ticks() - mission_start_time
         if elapsed < SHOW_MISSION_DURATION_MS:
@@ -517,7 +623,7 @@ while True:
                 screen,
                 [
                     ("OBJETIVO", True),
-                    ("ENCONTRE A CÁPSULA DE PESQUISA", True),
+                    ("ENCONTRE AS 2 CÁPSULAS DE PESQUISA", True),
                     ("Setas: mover | ESPAÇO: sonar", False),
                 ],
                 mission_big_font,
