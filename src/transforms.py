@@ -49,9 +49,6 @@ def get_rotation_around_point_matrix(angle_degrees, cx, cy):
     """
     Cria matriz de rotação em torno de um ponto arbitrário (cx, cy).
     Processo: T(-cx,-cy) -> R(angle) -> T(cx,cy)
-    1. Translada o ponto de rotação para a origem
-    2. Rotaciona
-    3. Translada de volta para a posição original
     """
     to_origin = get_translation_matrix(-cx, -cy)
     rotation = get_rotation_matrix(angle_degrees)
@@ -59,3 +56,32 @@ def get_rotation_around_point_matrix(angle_degrees, cx, cy):
     
     temp = mat_mul(rotation, to_origin)
     return mat_mul(back, temp)
+
+def get_identity_matrix():
+    return [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1]
+    ]
+
+
+
+def get_window_to_viewport_matrix_pygame(janela, viewport):
+    """
+    Transforma coordenadas da janela (mundo) para viewport (tela).
+    Versão SEM inversão de Y (para Pygame onde Y já cresce para baixo).
+    """
+    Wxmin, Wymin, Wxmax, Wymax = janela
+    Vxmin, Vymin, Vxmax, Vymax = viewport
+    
+    sx = (Vxmax - Vxmin) / (Wxmax - Wxmin)
+    sy = (Vymax - Vymin) / (Wymax - Wymin) 
+    
+    m = get_identity_matrix()
+    m = mat_mul(get_translation_matrix(-Wxmin, -Wymin), m)
+    m = mat_mul(get_scale_matrix(sx, sy), m)
+    m = mat_mul(get_translation_matrix(Vxmin, Vymin), m)
+    
+    return m
+
+

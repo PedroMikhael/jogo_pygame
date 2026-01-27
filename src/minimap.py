@@ -1,6 +1,6 @@
 import pygame
 from primitives import drawPolygon, scanline_fill, drawCircle
-from transforms import get_scale_matrix, get_translation_matrix, mat_mul, apply_transform
+from transforms import get_window_to_viewport_matrix_pygame, apply_transform
 
 def draw_minimap(surface, x, y, width, height, map_zones, player_pos, map_width, map_height, objects_dict=None):
     bg_points = [
@@ -12,9 +12,9 @@ def draw_minimap(surface, x, y, width, height, map_zones, player_pos, map_width,
     drawPolygon(surface, bg_points, (200, 200, 200))
     scanline_fill(surface, bg_points, (0, 0, 0))
 
-    scale_mat = get_scale_matrix(width / map_width, height / map_height)
-    trans_mat = get_translation_matrix(x, y)
-    transform = mat_mul(trans_mat, scale_mat)
+    janela = (0, 0, map_width, map_height)
+    viewport = (x, y, x + width, y + height)
+    transform = get_window_to_viewport_matrix_pygame(janela, viewport)
 
     for zone in map_zones:
         minimap_zone = apply_transform(zone, transform)
