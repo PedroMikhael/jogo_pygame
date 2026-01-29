@@ -8,6 +8,7 @@ from collision import circle_collision
 import time
 
 from characters.submarine import (
+    apply_damage,
     drawSubmarineFilled,
     get_bubble_spawn_position,
     init_sonar,
@@ -496,6 +497,14 @@ while True:
             jf_screen_y = jf['y'] - camera_y
             if is_visible(jf_screen_x, jf_screen_y):
                 update_jellyfish(jf, MAP_WIDTH, MAP_HEIGHT, is_point_in_map)
+                dx = jf['x'] - sub_x
+                dy = jf['y'] - sub_y
+                distance = math.sqrt(dx * dx + dy * dy)
+                collision_radius = 60 + (50 * SUB_SCALE) 
+                
+                if distance < collision_radius:
+                    apply_damage(battery, 10)
+                    impact_sound.play()
                 jf_copy = jf.copy()
                 jf_copy['x'] = jf_screen_x
                 jf_copy['y'] = jf_screen_y
@@ -515,6 +524,7 @@ while True:
             if not bomb.get('active', True):
                 explosions.append(create_explosion(bomb['x'], bomb['y']))
                 impact_sound.play()
+                apply_damage(battery, 10)
                 water_bombs.remove(bomb)
                 continue
 

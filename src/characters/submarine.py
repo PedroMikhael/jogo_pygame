@@ -391,3 +391,8 @@ def draw_depth(surface, depth, x, y):
     depth_text = f"{int(depth)}m"
     text_surface = font.render(depth_text, True, (200, 200, 200))
     surface.blit(text_surface, (x, y))
+
+def apply_damage(battery, damage_amount):
+    """Aplica dano à bateria do submarino."""
+    battery['charge'] = max(0, battery['charge'] - damage_amount)
+    return battery['charge'] > 0
