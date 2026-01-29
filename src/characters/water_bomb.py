@@ -2,6 +2,8 @@ import math
 import random
 from primitives import drawPolygon, drawCircle, DrawLineBresenham, drawEllipse, scanline_fill
 from transforms import get_rotation_matrix, get_translation_matrix, mat_mul, apply_transform
+from characters.explosion import ExplosionParticle, ExplosionFragment
+
 
 
 def create_water_bomb(x, y, scale=1.0):
@@ -42,6 +44,15 @@ def update_water_bomb(bomb, bounds_height, is_in_map_func=None):
             bomb['x'] = new_x
         if is_in_map_func(bomb['x'], new_y):
             bomb['y'] = new_y
+
+def create_explosion(x, y):
+    return {
+        'x': x,
+        'y': y,
+        'frame': 0,
+        'particles': [ExplosionParticle(x, y) for _ in range(25)],
+        'fragments': [ExplosionFragment(x, y) for _ in range(6)]
+    }
 
 
 def get_bomb_body_points(bomb):

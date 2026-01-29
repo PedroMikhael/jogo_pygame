@@ -4,6 +4,7 @@ import math
 import random
 import primitives
 from primitives import drawCircle
+from collision import circle_collision
 import time
 
 from characters.submarine import (
@@ -45,6 +46,13 @@ from characters.research_capsule import (
     check_capsule_collision,
     collect_capsule
 )
+
+from characters.explosion import (
+    create_explosion,
+    update_explosion,
+    draw_explosion
+)
+
 
 import menu
 import map
@@ -121,6 +129,7 @@ MAX_BUBBLES = 120
 
 jellyfishes = []
 water_bombs = []
+explosions = []
 giant_tentacles = None
 sonar = None
 battery = None
@@ -493,15 +502,46 @@ while True:
                 jf_copy['y'] = jf_screen_y
                 draw_jellyfish_bioluminescent(screen, jf_copy)
 
-        for bomb in water_bombs:
+        for bomb in water_bombs[:]:   
+            update_water_bomb(bomb, MAP_HEIGHT, is_point_in_map)
+
+            dx = bomb['x'] - sub_x
+            dy = bomb['y'] - sub_y
+            distance = math.sqrt(dx * dx + dy * dy)
+            bomb_radius = 28 * bomb.get('scale', 1.0)
+            sub_radius = 50 * SUB_SCALE 
+            if distance <= (bomb_radius + sub_radius):
+                bomb['active'] = False
+
+            if not bomb.get('active', True):
+                explosions.append(create_explosion(bomb['x'], bomb['y']))
+                water_bombs.remove(bomb)
+                continue
+
             bomb_screen_x = bomb['x'] - camera_x
             bomb_screen_y = bomb['y'] - camera_y
+
             if is_visible(bomb_screen_x, bomb_screen_y):
-                update_water_bomb(bomb, MAP_HEIGHT, is_point_in_map)
                 bomb_copy = bomb.copy()
                 bomb_copy['x'] = bomb_screen_x
                 bomb_copy['y'] = bomb_screen_y
                 draw_water_bomb(screen, bomb_copy, BOMB_BODY, BOMB_SPIKE, BOMB_HIGHLIGHT)
+
+        for explosion in explosions[:]:
+            alive = update_explosion(explosion)
+
+            draw_explosion(
+                screen,
+                {
+                    **explosion,
+                    'x': explosion['x'] - camera_x,
+                    'y': explosion['y'] - camera_y
+                }
+            )
+
+            if not alive:
+                explosions.remove(explosion)
+
 
         update_giant_tentacles(giant_tentacles)
         tentacles_copy = {
