@@ -87,7 +87,6 @@ pygame.mixer.music.play(-1)
 sonar_sound = pygame.mixer.Sound("sounds/submarine_sonar.mp3")
 sonar_sound.set_volume(0.7)
 
-# Adicionar depois que tiver a animação de dano em personagens
 impact_sound = pygame.mixer.Sound("sounds/impact_submarine.mp3")
 impact_sound.set_volume(0.3)
 
@@ -515,6 +514,7 @@ while True:
 
             if not bomb.get('active', True):
                 explosions.append(create_explosion(bomb['x'], bomb['y']))
+                impact_sound.play()
                 water_bombs.remove(bomb)
                 continue
 
