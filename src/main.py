@@ -50,6 +50,7 @@ import menu
 import map
 from map import get_spawn_position, is_point_in_map, get_all_map_zones
 import minimap
+import flashlight
 
 OCEAN_DEEP = (15, 40, 70)
 SUBMARINE_BODY = (80, 90, 100)
@@ -548,6 +549,12 @@ while True:
             propeller_angle,
             SUB_SCALE
         )
+
+        # =====================================================
+        # Lanterna - Aplicar escuridão fora do cone de luz
+        # =====================================================
+        cone_points = flashlight.get_flashlight_cone(WIDTH // 2, HEIGHT // 2, sub_angle)
+        flashlight.apply_darkness_overlay(screen, cone_points, WIDTH, HEIGHT)
 
         
         update_battery(battery)

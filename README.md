@@ -1,6 +1,77 @@
-# jogo_pygame
-Jogo2D desenvolvido em Python para a disciplina de Computação Gráfica
+# Echoes of the Deep
 
-instalar o venv na raiz do projeto: python -m venv venv e ativar: .\venv\Scripts\activate
-rodar o requiriments.txt com o comando: pip install -r requiriments.txt 
-rodar o jogo com o comando: python src/main.py
+Jogo 2D de exploração submarina desenvolvido em Python/Pygame para a disciplina de Computação Gráfica 
+
+## Descrição
+
+O jogador controla um submarino de pesquisa nas profundezas do oceano. O objetivo é encontrar cápsulas de pesquisa perdidas navegando por cavernas escuras utilizando a lanterna do submarino e o sonar.
+
+## Estrutura do Projeto
+
+```
+jogo_pygame/
+├── src/
+│   ├── main.py
+│   ├── primitives.py
+│   ├── transforms.py
+│   ├── menu.py
+│   ├── map.py
+│   ├── minimap.py
+│   ├── flashlight.py
+│   └── characters/
+│       ├── submarine.py
+│       ├── jellyfish.py
+│       ├── tentacles.py
+│       ├── water_bomb.py
+│       └── research_capsule.py
+├── imagens/
+├── sounds/
+├── requiriments.txt
+└── README.md
+```
+
+## Requisitos
+
+- Python 3.8+
+- Pygame
+
+## Instalação e Execução
+
+```bash
+# Clonar repositório
+git clone https://github.com/seu-usuario/jogo_pygame.git
+cd jogo_pygame
+
+# Criar ambiente virtual
+python -m venv venv
+
+# Ativar ambiente virtual (Windows)
+.\venv\Scripts\activate
+
+# Instalar dependências
+pip install -r requiriments.txt
+
+# Executar o jogo
+python src/main.py
+```
+
+## Controles
+
+| Tecla | Ação |
+|-------|------|
+| Setas direcionais | Mover submarino |
+| Espaço | Ativar sonar |
+| ESC | Pausar |
+
+
+## Equipe
+
+- Pedro Mikhael
+- João Victor
+- Rian Vilanova
+- Bianca Leão
+- Fabio Stahl
+
+## Licença
+
+Projeto acadêmico desenvolvido para a disciplina de Computação Gráfica.
