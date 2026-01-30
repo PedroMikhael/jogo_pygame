@@ -4,7 +4,7 @@ Jogo 2D de exploração submarina desenvolvido em Python/Pygame para a disciplin
 
 ## Descrição
 
-O jogador controla um submarino de pesquisa nas profundezas do oceano, onde existem alguns animais que podem atacar o jogador. O objetivo é encontrar cápsulas de pesquisa perdidas navegando por cavernas escuras utilizando a lanterna do submarino e o sonar.
+O jogador controla um submarino de pesquisa nas profundezas do oceano, onde existem alguns animais e bombas aquáticas que podem atacar o jogador. O objetivo é encontrar cápsulas de pesquisa perdidas navegando por cavernas escuras utilizando a lanterna do submarino e o sonar antes que a bateria do submarino acabe totalmente.
 
 ## Demonstração
 
@@ -31,6 +31,7 @@ jogo_pygame/
 ├── imagens/
 ├── sounds/
 ├── requirements.txt
+├── demonstração.mp4
 └── README.md
 ```
 
