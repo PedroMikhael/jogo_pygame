@@ -22,12 +22,14 @@ jogo_pygame/
 │   ├── map.py
 │   ├── minimap.py
 │   ├── flashlight.py
+│   ├── collision.py
 │   └── characters/
 │       ├── submarine.py
 │       ├── jellyfish.py
 │       ├── tentacles.py
 │       ├── water_bomb.py
 │       └── research_capsule.py
+│       └── explosion.py
 ├── imagens/
 ├── sounds/
 ├── requirements.txt
